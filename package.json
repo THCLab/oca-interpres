@@ -1,0 +1,40 @@
+{
+  "name": "oca-interpres",
+  "version": "0.1.0",
+  "description": "The glue for the semantics and presentation layer",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run -c ./vitest.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/THCLab/oca-interpres.git"
+  },
+  "author": "blelump",
+  "license": "EUPL-1.2",
+  "bugs": {
+    "url": "https://github.com/THCLab/oca-interpres/issues"
+  },
+  "homepage": "https://github.com/THCLab/oca-interpres#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "axios": "^1.6.7",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "prettier-plugin-organize-imports": "^3.2.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.3.1"
+  },
+  "dependencies": {
+    "oca.js": "^0.4.1-rc.6"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "plugins": [
+      "prettier-plugin-organize-imports"
+    ]
+  }
+}

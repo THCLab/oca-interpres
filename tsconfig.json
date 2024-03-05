@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "lib": ["ESNext", "DOM"],
+    "module": "NodeNext",
+    "baseUrl": ".",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext",
+    "paths": {
+      "@frontend/*": ["../frontend/src/*"],
+			"#app/*": ["./src/*"]
+    },
+    "jsx": "react"
+  },
+  "include": ["src", ".eslintrc.cjs"]
+}
