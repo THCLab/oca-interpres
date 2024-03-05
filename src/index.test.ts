@@ -3,14 +3,13 @@ import { describe, expect, test } from "vitest"
 import { from } from "./index.js"
 
 describe("#from", () => {
-  test("should return 1", async () => {
+  test("creates intermediary object graph", async () => {
     const bundleSAID = await setupBundle()
 
     const bundle = await axios.get(
       `https://repository.oca.argo.colossi.network/api/oca-bundles/${bundleSAID}?w=true`,
     )
     const pres = setupPres(bundleSAID)
-    console.log(pres)
     const result = await from(bundle.data, pres.presentation, {})
     console.dir(result, { depth: null })
   })
