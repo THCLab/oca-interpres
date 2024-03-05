@@ -1,5 +1,5 @@
 # oca-interpres
-The glue for the semantics and presentation layer
+The glue of the OCA semantics and presentation layer
 
 ## Usage
 
