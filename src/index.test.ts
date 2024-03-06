@@ -164,6 +164,7 @@ const setupPres = (bundleSAID: string) => {
           c: "capture", // context
           a: {
             // attributes
+            num: { t: "number", r: [0, 100] },
             d: { t: "textarea" }, // capture "d" field as textarea
             img: { t: "file" }, // capture "img" field as file
             sign: { t: "signature" }, // capture "sign" field as signature
