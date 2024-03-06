@@ -155,6 +155,9 @@ let buildField = (attr, attrPresProperties) => {
     let f = {
       type: "number",
     }
+    if (attrPresProperties?.type === "number") {
+      f.range = attrPresProperties.range
+    }
     return f
   } else if (attrType === "Boolean") {
     /** @type { import("@frontend/common/OcaForm.js").OcaCheckboxField } */
@@ -335,6 +338,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
         type: attrMeta.t,
         orientation: attrMeta.o,
         variant: attrMeta.va,
+        range: attrMeta.r,
       }
       if (attrMeta.t === "signature" && attrMeta.m) {
         attrPresentationProp.canvas = attrMeta.m.canvas
