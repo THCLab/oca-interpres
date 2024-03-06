@@ -26,4 +26,3 @@ release-major:
 publish:
 	git push --tags
 	git push origin main
-	npm publish
