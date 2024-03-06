@@ -135,7 +135,7 @@ const setupPres = (bundleSAID: string) => {
         },
         {
           n: "page 1",
-          ao: ["passed", "d", "sign"],
+          ao: ["passed", "d", "sign", "radio1"],
         },
       ],
       po: ["page 1", "page 2"],
@@ -164,7 +164,7 @@ const setupPres = (bundleSAID: string) => {
           c: "capture", // context
           a: {
             // attributes
-            num: { t: "number", r: [0, 100] },
+            num: { t: "number", r: [0, 100], s: 0.5 },
             d: { t: "textarea" }, // capture "d" field as textarea
             img: { t: "file" }, // capture "img" field as file
             sign: { t: "signature" }, // capture "sign" field as signature

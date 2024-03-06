@@ -157,6 +157,7 @@ let buildField = (attr, attrPresProperties) => {
     }
     if (attrPresProperties?.type === "number") {
       f.range = attrPresProperties.range
+      f.step = attrPresProperties.step
     }
     return f
   } else if (attrType === "Boolean") {
@@ -334,11 +335,18 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
     let attrPresentationProp = {}
     let attrMeta = interaction?.a?.[attrNameWithNs]
     if (attrMeta) {
-      attrPresentationProp = {
-        type: attrMeta.t,
-        orientation: attrMeta.o,
-        variant: attrMeta.va,
-        range: attrMeta.r,
+      attrPresentationProp.type = attrMeta.t
+      switch (attrMeta.t) {
+        default:
+          attrPresentationProp = {
+            ...attrPresentationProp,
+            orientation: attrMeta.o,
+            variant: attrMeta.va,
+          }
+          break
+        case "number":
+          attrPresentationProp = { ...attrPresentationProp, range: attrMeta.r, step: attrMeta.s }
+          break
       }
       if (attrMeta.t === "signature" && attrMeta.m) {
         attrPresentationProp.canvas = attrMeta.m.canvas
