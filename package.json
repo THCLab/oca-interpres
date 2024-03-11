@@ -4,6 +4,7 @@
   "description": "The glue for the semantics and presentation layer",
   "type": "module",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "scripts": {
     "test": "vitest run -c ./vitest.config.js"
   },
@@ -38,3 +39,4 @@
     ]
   }
 }
+

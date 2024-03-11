@@ -6,13 +6,12 @@
     "module": "NodeNext",
     "baseUrl": ".",
     "moduleResolution": "NodeNext",
-    "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",
     "paths": {
       "@frontend/*": ["../frontend/src/*"],
-			"#app/*": ["./src/*"]
+      "#app/*": ["./src/*"]
     },
     "jsx": "react"
   },

@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { OCABox } from "oca.js"
 
 const DEFAULT_LANG = "eng"
