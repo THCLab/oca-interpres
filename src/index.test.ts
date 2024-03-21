@@ -59,6 +59,7 @@ ADD ATTRIBUTE sign=Binary
 ADD LABEL en ATTRS sign="Signature"
 ADD LABEL pl ATTRS sign="Podpis"
 ADD ATTRIBUTE num=Numeric date=DateTime
+ADD UNIT si ATTRS num=m
 ADD FORMAT ATTRS date="DD.MM.YYYY"
 ADD LABEL en ATTRS num="Number" date="Date"
 ADD ATTRIBUTE time=DateTime

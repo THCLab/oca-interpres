@@ -157,6 +157,11 @@ let buildField = (attr, attrPresProperties) => {
     let f = {
       type: "number",
     }
+    if (attr.units) {
+      const [system, unit] = Object.entries(attr.units)[0]
+      f.unitSystem = system
+      f.unit = unit
+    }
     if (attrPresProperties?.type === "number") {
       f.range = attrPresProperties.range
       f.step = attrPresProperties.step
