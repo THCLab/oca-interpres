@@ -15,8 +15,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    environment: 
-      name: OCA_REPO
+    env: 
+      OCA_REPO: ${{ vars.OCA_REPO }}
 
     strategy:
       matrix:
