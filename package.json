@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/THCLab/oca-interpres#readme",
   "devDependencies": {
+    "@types/node": "^20.12.6",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
     "axios": "^1.6.7",

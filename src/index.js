@@ -398,14 +398,21 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
     }
     return dep
   }
-  /** @returns { import("@frontend/common/OcaForm.js").OcaFormPage} */
-  const mkNestedPage = (/** @type {string} */ attrName, /** @type { OCABox } */ parent) => {
+
+  const mkAggregationPage = (/** @type {string} */ attrName) => {
     let page = {}
     /** @type { (import("@frontend/common/OcaForm.js").OcaFormPage | import("@frontend/common/OcaForm.js").OcaFieldEntry )[] } */
     page.fields = []
     page.title = `page.${attrName}.title`
     page.name = attrName
     page.type = "struct"
+
+    return page
+  }
+
+  /** @returns { import("@frontend/common/OcaForm.js").OcaFormPage} */
+  const mkNestedRefPage = (/** @type {string} */ attrName, /** @type { OCABox } */ parent) => {
+    const page = mkAggregationPage(attrName)
     let attribute = parent.attributes().find((attr) => attr.name === attrName)
     if (!attribute) {
       throw new Error(
@@ -421,7 +428,6 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
         console.warn(`No label found for attribute "${attrName}" in language "${lang}".`)
         continue
       }
-      i18n.locales[lang].p[page.title] = lbl
     }
 
     return page
@@ -441,31 +447,58 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
         attr = findAttr(pageAttr, ocaBox)
         fields.push(prepField(attr, prefix.join(".")))
       } else if ("ao" in pageAttr) {
-        const ocaSaid = ocaBox.generateBundle().d
-        const dep = findDep(ocaSaid, pageAttr.n)
-        const nestedPage = mkNestedPage(pageAttr.n, ocaBox)
-
-        attr = findAttr(pageAttr.n, ocaBox)
-        if (Array.isArray(attr.type)) {
-          pageToFields(pageAttr, dep, nestedPage, prefix.concat(pageAttr.n))
-
-          const [min, max] = detectCardinality(attr.cardinality)
-          /** @type { import("@frontend/common/OcaForm.js").OcaListField } */
-          let f = {
-            type: "list",
-            minLength: min && min.trim().length > 0 ? parseInt(min) : null,
-            maxLength: max && max.trim().length > 0 ? parseInt(max) : null,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            elementFields: nestedPage.fields,
+        if ("n" in pageAttr && ("nr" in pageAttr || "ns" in pageAttr)) {
+          if ("nr" in pageAttr && "ns" in pageAttr) {
+            throw new Error(`Page cannot have 'nr' and 'ns' attributes at the same time.`)
           }
-          nestedPage.fields = [f]
-          fields.push(nestedPage)
-          continue
+          throw new Error(`Page cannot have 'n' and 'nr' or 'ns' attributes at the same time.`)
+        }
+        const ocaSaid = ocaBox.generateBundle().d
+        let refOrPageName = null
+        if ("n" in pageAttr) {
+          refOrPageName = pageAttr.n
+          console.warn(
+            `[DEPRECATED] Attribute 'n' for page '${pageAttr.n}' is DEPRECATED. Use 'nr' or 'ns' instead.`,
+          )
+        } else if ("nr" in pageAttr || "ns" in pageAttr) {
+          refOrPageName = pageAttr.nr || pageAttr.ns
         }
 
-        pageToFields(pageAttr, dep, nestedPage, prefix.concat(pageAttr.n))
+        let nestedPage = null
+        if ("nr" in pageAttr || /* deprecated */ "n" in pageAttr) {
+          nestedPage = mkNestedRefPage(refOrPageName, ocaBox)
+          attr = findAttr(refOrPageName, ocaBox)
+          refOrPageName = pageAttr.nr || pageAttr.n
+          const dep = findDep(ocaSaid, refOrPageName)
+
+          if (Array.isArray(attr.type)) {
+            pageToFields(pageAttr, dep, nestedPage, prefix.concat(refOrPageName))
+
+            const [min, max] = detectCardinality(attr.cardinality)
+            /** @type { import("@frontend/common/OcaForm.js").OcaListField } */
+            let f = {
+              type: "list",
+              minLength: min && min.trim().length > 0 ? parseInt(min) : null,
+              maxLength: max && max.trim().length > 0 ? parseInt(max) : null,
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              elementFields: nestedPage.fields,
+            }
+            nestedPage.fields = [f]
+            fields.push(nestedPage)
+            continue
+          }
+
+          pageToFields(pageAttr, dep, nestedPage, prefix.concat(refOrPageName))
+        } else if ("ns" in pageAttr) {
+          nestedPage = mkAggregationPage(refOrPageName)
+          for (let lang of presLangs) {
+            i18n.locales[lang].p[nestedPage.title] = presentation.pl[lang][pageAttr.ns]
+          }
+          pageToFields(pageAttr, ocaBox, nestedPage, prefix.concat(refOrPageName))
+        }
+
         fields.push(nestedPage)
       } else {
         console.log("Invalid attribute definition", pageAttr)
@@ -475,8 +508,11 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
 
     ocaFormPage.fields = fields
   }
+
   for (let pageLbl of presentation.po) {
-    let foundPage = presentation.p.find((page) => page.n === pageLbl)
+    let foundPage = presentation.p.find(
+      (page) => page.n === pageLbl || page.ns === pageLbl || page.nr === pageLbl,
+    )
     if (!foundPage) {
       console.warn(`No attributes found for page "${pageLbl}".`)
       continue
