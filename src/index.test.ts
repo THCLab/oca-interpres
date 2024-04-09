@@ -214,4 +214,50 @@ ADD LABEL pl ATTRS address="Adres"
       })
     })
   })
+
+  describe("i a", () => {
+    describe("select variants", () => {
+      const ocafile = `ADD ATTRIBUTE multi=Array[Text]
+ADD ENTRY_CODE ATTRS multi=["o1", "o2", "o3", "o4", "o5", "o6", "o7"]
+ADD ENTRY en ATTRS multi={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four", "o5": "Five", "o6": "Six", "o7": "Seven"}
+ADD LABEL en ATTRS multi="Multi"
+`
+      let bundleSAID = null
+      beforeAll(async () => {
+        let bundleResp = await axios.post(`${OCA_REPO}/api/oca-bundles`, ocafile)
+        expect(bundleResp.data).toHaveProperty("said")
+        bundleSAID = bundleResp.data.said
+      })
+
+      test("creates object graph", async () => {
+        const bundle = await axios.get(`${OCA_REPO}/api/oca-bundles/${bundleSAID}?w=true`)
+        const pres = {
+          v: "1.0.0",
+          bd: bundleSAID,
+          l: ["eng"],
+          d: "EK0T5StXlcYwIhfp_wJxhIpYwYpEnMhHwnKbHnodhxFU",
+          p: [{ ns: "page 1", ao: ["multi"] }],
+          po: ["page 1"],
+          pl: {
+            eng: {
+              "page 1": "First page",
+            },
+          },
+          i: [
+            {
+              m: "web", // interaction method
+              c: "capture", // context
+              a: {
+                multi: { t: "select", va: "multiple" },
+              },
+            },
+          ],
+        }
+        const result = await from(bundle.data, pres, {})
+        console.dir(result, { depth: null })
+        expect(result.form.pages[0].fields[0].field.type).toBe("choice")
+        expect(result.form.pages[0].fields[0].field.display.type).toBe("select-multiple")
+      })
+    })
+  })
 })
