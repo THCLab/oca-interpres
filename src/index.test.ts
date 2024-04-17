@@ -161,6 +161,7 @@ ADD LABEL pl ATTRS address="Adres"
         expect(result.form.pages[1].title).toBe("page 2")
         expect(result.form.pages[1].fields.map((el) => el.name)).toEqual(["i", "address"])
         expect(result.form.pages[1].fields[1].fields).toBeInstanceOf(Array)
+        expect(result.i18n.locales.eng.p["page.address.title"]).toBe("Address")
         console.dir(result, { depth: null })
       })
     })
@@ -210,6 +211,7 @@ ADD LABEL pl ATTRS address="Adres"
           "nice embedding section",
         ])
         expect(result.form.pages[1].fields[1].fields).toBeInstanceOf(Array)
+        expect(result.i18n.locales.eng.p["page.address.title"]).toBe("Address")
         console.dir(result, { depth: null })
       })
     })

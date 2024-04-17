@@ -428,6 +428,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
         console.warn(`No label found for attribute "${attrName}" in language "${lang}".`)
         continue
       }
+      i18n.locales[lang].p[page.title] = lbl
     }
 
     return page
