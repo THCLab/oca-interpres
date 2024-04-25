@@ -230,8 +230,9 @@ let buildField = (attr, attrPresProperties) => {
  * @param {import("../db/schemas.js").BundleWithDeps} bundleWithDeps
  * @param {string} id
  * @param {import("../schemas/conditionals.js").ConditionalsType} conditionals
+ * @param {string[]} readonlies
  * */
-export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
+export const from = async (bundleWithDeps, presentation, conditionals = {}, readonlies = []) => {
   /** @type { import("../schemas/i18n.js").FormI18nType }*/
   let i18n = { locales: {} }
   if (presentation.bd !== bundleWithDeps.bundle.d) {
@@ -371,6 +372,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}) => {
       name: attr.name,
       label: attr.labels?.eng || "",
       optional: isOptional(attr.conformance),
+      readonly: readonlies.includes(attrNameWithNs) || readonlies.some((r) => attrNameWithNs.startsWith(r + ".")),
       condition: conditionals[attrNameWithNs],
       field: buildField(attr, attrPresentationProp),
     }
