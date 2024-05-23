@@ -221,6 +221,12 @@ let buildField = (attr, attrPresProperties) => {
       },
     }
     return f
+  } else if (attrPresProperties.type === "question" && attrType.match(/^refs:/) ) {
+    /** @type { import("@frontend/common/OcaForm.js").OcaQuestionField} */
+    let f = {
+      type: "question"
+    }
+    return f
   }
 
   throw new Error(`Unsupported attribute type: ${attrType} for attribute ${attr.name}`)
@@ -375,6 +381,44 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
       readonly: readonlies.includes(attrNameWithNs) || readonlies.some((r) => attrNameWithNs.startsWith(r + ".")),
       condition: conditionals[attrNameWithNs],
       field: buildField(attr, attrPresentationProp),
+    }
+
+    if (attrMeta && attrMeta.t === "question") {
+      if (isRefAttr(attr.type)) {
+        const refSaid = extractRef(attr.type)
+        const dep = OCABoxDeps[refSaid]
+        const answerAttr = findAttr(attrMeta.answer, dep)
+        field.field.answer = prepField(answerAttr, attrNameWithNs)
+        const additionalFields = []
+        Object.entries(attrMeta.o || {}).forEach(([option, additionalAttrNames]) => {
+          additionalAttrNames.forEach((attrName) => {
+            const additionalField = prepField(findAttr(attrName, dep), attrNameWithNs)
+            if (!conditionals[attrNameWithNs + "." + additionalField.name]) {
+              const [head, ...tail] = (attrNameWithNs + "." + answerAttr.name).split(".")
+              additionalField.condition = {
+                all: [
+                  {
+                    fact: head,
+                    path: tail.join("."),
+                    operator: "equal",
+                    value: option,
+                  }
+                ]
+              }
+            }
+            additionalFields.push(additionalField)
+          }
+          )
+        })
+        if (additionalFields.length > 0) {
+          field.field.additionalFields = {
+            type: "struct",
+            name: attrNameWithNs,
+            title: "",
+            fields: additionalFields,
+          }
+        }
+      }
     }
 
     for (let lang of presLangs) {
