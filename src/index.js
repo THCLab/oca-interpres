@@ -390,21 +390,25 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
         const answerAttr = findAttr(attrMeta.answer, dep)
         field.field.answer = prepField(answerAttr, attrNameWithNs)
         const additionalFields = []
-        Object.entries(attrMeta.o || {}).forEach(([option, additionalAttrNames]) => {
-          additionalAttrNames.forEach((attrName) => {
+        Object.entries(attrMeta.o || {}).forEach(([option, additionalAttrDef]) => {
+          additionalAttrDef.forEach((attrDef) => {
+            const attrName = typeof attrDef === "string" ? attrDef : attrDef.an
             const additionalField = prepField(findAttr(attrName, dep), attrNameWithNs)
             if (!conditionals[attrNameWithNs + "." + additionalField.name]) {
               const [head, ...tail] = (attrNameWithNs + "." + answerAttr.name).split(".")
-              additionalField.condition = {
-                all: [
-                  {
-                    fact: head,
-                    path: tail.join("."),
-                    operator: "equal",
-                    value: option,
-                  }
-                ]
-              }
+              additionalField.condition = [{
+                conditions: {
+                  all: [
+                    {
+                      fact: head,
+                      path: tail.join("."),
+                      operator: "equal",
+                      value: option,
+                    }
+                  ]
+                },
+                effects: typeof attrDef === "string" ? ["display"] : attrDef.e
+              }]
             }
             additionalFields.push(additionalField)
           }
