@@ -470,7 +470,10 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
     return dep
   }
 
-  const mkAggregationPage = (/** @type {string} */ attrName) => {
+  const mkAggregationPage = (
+    /** @type {string} */ attrName,
+    /** @type { string[] } */ prefix = [],
+  ) => {
     let page = {}
     /** @type { (import("@frontend/common/OcaForm.js").OcaFormPage | import("@frontend/common/OcaForm.js").OcaFieldEntry )[] } */
     page.fields = []
@@ -478,12 +481,21 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
     page.name = attrName
     page.type = "struct"
 
+    const attrNameWithNs = prefix.concat(attrName).join(".")
+    if (conditionals[attrNameWithNs]) {
+      page.condition = conditionals[attrNameWithNs]
+    }
+
     return page
   }
 
   /** @returns { import("@frontend/common/OcaForm.js").OcaFormPage} */
-  const mkNestedRefPage = (/** @type {string} */ attrName, /** @type { OCABox } */ parent) => {
-    const page = mkAggregationPage(attrName)
+  const mkNestedRefPage = (
+    /** @type {string} */ attrName,
+    /** @type { OCABox } */ parent,
+    /** @type { string[] } */ prefix = [],
+  ) => {
+    const page = mkAggregationPage(attrName, prefix)
     let attribute = parent.attributes().find((attr) => attr.name === attrName)
     if (!attribute) {
       throw new Error(
@@ -538,7 +550,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
 
         let nestedPage = null
         if ("nr" in pageAttr || /* deprecated */ "n" in pageAttr) {
-          nestedPage = mkNestedRefPage(refOrPageName, ocaBox)
+          nestedPage = mkNestedRefPage(refOrPageName, ocaBox, prefix)
           attr = findAttr(refOrPageName, ocaBox)
           refOrPageName = pageAttr.nr || pageAttr.n
           const dep = findDep(ocaSaid, refOrPageName)
