@@ -94,6 +94,20 @@ let buildField = (attr, attrPresProperties) => {
       return f
     }
 
+    if (attrPresProperties?.type === "question") {
+      /** @type { import("@frontend/common/OcaForm.js").OcaArrayField } */
+      let f = {
+        type: "array",
+        minLength,
+        maxLength,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        elementField: buildField({ ...attr, type: attrType[0] }, attrPresProperties),
+      }
+      return f
+    }
+
     /** @type { import("@frontend/common/OcaForm.js").OcaArrayField } */
     let f = {
       type: "array",
@@ -264,12 +278,18 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
   let referencedAttrs = {}
 
   const isRefAttr = (/** @type {string} */ attrType) => {
+    if (Array.isArray(attrType)) {
+      return isRefAttr(attrType[0])
+    }
     if (attrType.match(/^refs:/)) {
       return true
     }
     return false
   }
   const extractRef = (/** @type {string} */ attrType) => {
+    if (Array.isArray(attrType)) {
+      return extractRef(attrType[0])
+    }
     return attrType.replace(/^refs:/, "")
   }
   // Check if all the top level OCA Bundle attributes being references
@@ -385,10 +405,11 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
 
     if (attrMeta && attrMeta.t === "question") {
       if (isRefAttr(attr.type)) {
+        const fieldDef = field.field?.elementField || field.field
         const refSaid = extractRef(attr.type)
         const dep = OCABoxDeps[refSaid]
         const answerAttr = findAttr(attrMeta.answer, dep)
-        field.field.answer = prepField(answerAttr, attrNameWithNs)
+        fieldDef.answer = prepField(answerAttr, attrNameWithNs)
         const additionalFields = []
         Object.entries(attrMeta.o || {}).forEach(([option, additionalAttrDef]) => {
           additionalAttrDef.forEach((attrDef) => {
@@ -415,7 +436,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
           )
         })
         if (additionalFields.length > 0) {
-          field.field.additionalFields = {
+          fieldDef.additionalFields = {
             type: "struct",
             name: attrNameWithNs,
             title: "",
