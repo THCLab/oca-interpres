@@ -410,6 +410,9 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
         const dep = OCABoxDeps[refSaid]
         const answerAttr = findAttr(attrMeta.answer, dep)
         fieldDef.answer = prepField(answerAttr, attrNameWithNs)
+        if (!field.optional) {
+          fieldDef.answer.optional = false
+        }
         const additionalFields = []
         Object.entries(attrMeta.o || {}).forEach(([option, additionalAttrDef]) => {
           additionalAttrDef.forEach((attrDef) => {
