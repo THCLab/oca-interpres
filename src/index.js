@@ -58,11 +58,30 @@ let buildField = (attr, attrPresProperties) => {
     let variants = []
     // Take first language as default and rest would be provided via i18n
     let firstKey = Object.keys(attr.entries)[0]
-    for (const entry of attr.entry_codes || []) {
-      variants.push({
-        name: entry,
-        label: /** @type {string} */ (attr.entries[firstKey][entry]),
-      })
+    if (typeof attr.entry_codes === 'object') {
+      if (Array.isArray(attr.entry_codes)) {
+        for (const entry of attr.entry_codes || []) {
+          variants.push({
+            name: entry,
+            label: /** @type {string} */ (attr.entries[firstKey][entry]),
+          })
+        }
+      } else {
+        for (const [group_key, entry_codes] of Object.entries(attr.entry_codes)) {
+          const options = []
+          for (const entry of entry_codes || []) {
+            options.push({
+              name: entry,
+              label: /** @type {string} */ (attr.entries[firstKey][entry]),
+            })
+          }
+          variants.push({
+            name: group_key,
+            label: /** @type {string} */ (attr.entries[firstKey][group_key]),
+            options
+          })
+        }
+      }
     }
     let displayType = "select"
     const rdt = chooseDisplayType(attrPresProperties)
