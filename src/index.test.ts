@@ -217,6 +217,92 @@ ADD LABEL pl ATTRS address="Adres"
     })
   })
 
+  describe("Hidden fields", () => {
+    const ocafile = async () => {
+      const list3 = `ADD ATTRIBUTE street=Text zip=Text city=Text`
+      let list3Resp = await axios.post(`${OCA_REPO}/api/oca-bundles`, list3)
+      expect(list3Resp.data).toHaveProperty("said")
+
+      const list1 = `ADD ATTRIBUTE address=Array[refs:${list3Resp.data.said}]`
+      let list1Resp = await axios.post(`${OCA_REPO}/api/oca-bundles`, list1)
+      expect(list1Resp.data).toHaveProperty("said")
+
+      return `
+ADD ATTRIBUTE list1=Array[refs:${list1Resp.data.said}]
+ADD CARDINALITY ATTRS list1="1-"
+
+ADD ATTRIBUTE list2=Array[Text]
+ADD ENTRY_CODE ATTRS list2=["o1", "o2", "o3", "o4", "o5", "o6", "o7"]
+ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four", "o5": "Five", "o6": "Six", "o7": "Seven"}
+
+`
+    }
+
+    let bundleSAID = null
+    beforeAll(async () => {
+      let bundleResp = await axios.post(`${OCA_REPO}/api/oca-bundles`, await ocafile())
+      expect(bundleResp.data).toHaveProperty("said")
+
+      bundleSAID = bundleResp.data.said
+    })
+
+    test("creates lists with identifiers", async () => {
+      const bundle = await axios.get(`${OCA_REPO}/api/oca-bundles/${bundleSAID}?w=true`)
+      const pres = {
+        v: "1.0.0",
+        bd: bundleSAID,
+        l: ["eng"],
+        d: "EK0T5StXlcYwIhfp_wJxhIpYwYpEnMhHwnKbHnodhxFU",
+        p: [
+          {
+            ns: "page 1",
+            ao: [
+              {
+                nr: "list1",
+                ao: [{ nr: "address", ao: ["street", "zip", "city"] }],
+              },
+              "list2",
+            ],
+          },
+        ],
+        po: ["page 1"],
+        pl: {
+          eng: {
+            "page 1": "First page",
+          },
+        },
+        i: [
+          {
+            m: "web",
+            c: "capture",
+            a: {
+              list1: { t: "list", id: true, idt: "uuid", on_item_remove: "inform" },
+              "list1.address": { t: "list", id: true, idt: "bigint", on_item_remove: "inform" },
+            },
+          },
+        ],
+      }
+
+      const result = await from(bundle.data, pres, {})
+
+      expect(result.form.pages[0].fields[0].fields[0].type).toBe("list")
+      const hf1 = result.form.pages[0].fields[0].fields[0].elementFields.find(
+        (ef) => ef.name === "_id",
+      )
+      expect(hf1).toBeTruthy()
+      expect(hf1.field.type).toBe("hidden")
+      expect(hf1.field.id).toBe("uuid")
+
+      const hf2 =
+        result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].elementFields.find(
+          (ef) => ef.name === "_id",
+        )
+      expect(hf2).toBeTruthy()
+      expect(hf2.field.type).toBe("hidden")
+      expect(hf2.field.id).toBe("bigint")
+    })
+  })
+
   describe("i a", () => {
     describe("select variants", () => {
       const ocafile = `ADD ATTRIBUTE multi=Array[Text]

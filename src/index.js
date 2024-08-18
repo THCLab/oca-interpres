@@ -58,7 +58,7 @@ let buildField = (attr, attrPresProperties) => {
     let variants = []
     // Take first language as default and rest would be provided via i18n
     let firstKey = Object.keys(attr.entries)[0]
-    if (typeof attr.entry_codes === 'object') {
+    if (typeof attr.entry_codes === "object") {
       if (Array.isArray(attr.entry_codes)) {
         for (const entry of attr.entry_codes || []) {
           variants.push({
@@ -78,7 +78,7 @@ let buildField = (attr, attrPresProperties) => {
           variants.push({
             name: group_key,
             label: /** @type {string} */ (attr.entries[firstKey][group_key]),
-            options
+            options,
           })
         }
       }
@@ -170,6 +170,9 @@ let buildField = (attr, attrPresProperties) => {
         type: "signature",
       }
       return f
+    } else if (attrPresProperties.type === "list") {
+      console.log("list")
+      return f
     }
   }
   if (attrType === "Text") {
@@ -254,10 +257,10 @@ let buildField = (attr, attrPresProperties) => {
       },
     }
     return f
-  } else if (attrPresProperties.type === "question" && attrType.match(/^refs:/) ) {
+  } else if (attrPresProperties.type === "question" && attrType.match(/^refs:/)) {
     /** @type { import("@frontend/common/OcaForm.js").OcaQuestionField} */
     let f = {
-      type: "question"
+      type: "question",
     }
     return f
   }
@@ -417,7 +420,9 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
       name: attr.name,
       label: attr.labels?.eng || "",
       optional: isOptional(attr.conformance),
-      readonly: readonlies.includes(attrNameWithNs) || readonlies.some((r) => attrNameWithNs.startsWith(r + ".")),
+      readonly:
+        readonlies.includes(attrNameWithNs) ||
+        readonlies.some((r) => attrNameWithNs.startsWith(r + ".")),
       condition: conditionals[attrNameWithNs],
       field: buildField(attr, attrPresentationProp),
     }
@@ -439,23 +444,24 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
             const additionalField = prepField(findAttr(attrName, dep), attrNameWithNs)
             if (!conditionals[attrNameWithNs + "." + additionalField.name]) {
               const [head, ...tail] = (attrNameWithNs + "." + answerAttr.name).split(".")
-              additionalField.condition = [{
-                conditions: {
-                  all: [
-                    {
-                      fact: head,
-                      path: tail.join("."),
-                      operator: "equal",
-                      value: option,
-                    }
-                  ]
+              additionalField.condition = [
+                {
+                  conditions: {
+                    all: [
+                      {
+                        fact: head,
+                        path: tail.join("."),
+                        operator: "equal",
+                        value: option,
+                      },
+                    ],
+                  },
+                  effects: typeof attrDef === "string" ? ["display"] : attrDef.e,
                 },
-                effects: typeof attrDef === "string" ? ["display"] : attrDef.e
-              }]
+              ]
             }
             additionalFields.push(additionalField)
-          }
-          )
+          })
         })
         if (additionalFields.length > 0) {
           fieldDef.additionalFields = {
@@ -578,6 +584,27 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
           const dep = findDep(ocaSaid, refOrPageName)
 
           if (Array.isArray(attr.type)) {
+            const arrPresData = interaction?.a?.[prefix.concat(refOrPageName).join(".")]
+            const additionalFields = []
+            if (arrPresData?.t === "list" && arrPresData?.id) {
+              if (
+                !arrPresData?.idt &&
+                (arrPresData?.idt !== "uuid" || arrPresData?.idt !== "bigint")
+              ) {
+                throw new Error(
+                  `List field '${refOrPageName}' has no idt property. Possible values are: 'uuid'`,
+                )
+              }
+              let hf = {
+                field: {
+                  type: "hidden",
+                  id: arrPresData.idt,
+                  onItemRemove: arrPresData.on_item_remove,
+                },
+                name: "_id",
+              }
+              additionalFields.push(hf)
+            }
             pageToFields(pageAttr, dep, nestedPage, prefix.concat(refOrPageName))
 
             const [min, max] = detectCardinality(attr.cardinality)
@@ -589,7 +616,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              elementFields: nestedPage.fields,
+              elementFields: nestedPage.fields.concat(additionalFields),
             }
             nestedPage.fields = [f]
             fields.push(nestedPage)
@@ -631,6 +658,12 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
     page.fields = []
 
     for (let lang of presLangs) {
+      if (!presentation.pl[lang]) {
+        console.error(
+          `No presentation labels found for language "${lang} in presentation d: '${presentation.d}'".`,
+        )
+        continue
+      }
       i18n.locales[lang].p[pageLbl] = presentation.pl[lang][pageLbl]
     }
 
