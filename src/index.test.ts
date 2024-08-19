@@ -291,7 +291,7 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
       )
       expect(hf1).toBeTruthy()
       expect(hf1.field.type).toBe("hidden")
-      expect(hf1.field.id).toBe("uuid")
+      expect(hf1.field.format).toBe("uuid")
 
       const hf2 =
         result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].elementFields.find(
@@ -299,7 +299,12 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
         )
       expect(hf2).toBeTruthy()
       expect(hf2.field.type).toBe("hidden")
-      expect(hf2.field.id).toBe("bigint")
+      expect(hf2.field.format).toBe("bigint")
+
+      expect(result.meta).toMatchObject({
+        _id: { id: true, format: "uuid" },
+        list1: { _id: { id: true, format: "bigint" } },
+      })
     })
   })
 

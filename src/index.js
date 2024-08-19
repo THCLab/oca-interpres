@@ -268,6 +268,8 @@ let buildField = (attr, attrPresProperties) => {
   throw new Error(`Unsupported attribute type: ${attrType} for attribute ${attr.name}`)
 }
 
+const meta = {}
+
 /**
  * @param {import("../db/schemas.js").BundleWithDeps} bundleWithDeps
  * @param {string} id
@@ -592,13 +594,27 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
                 (arrPresData?.idt !== "uuid" || arrPresData?.idt !== "bigint")
               ) {
                 throw new Error(
-                  `List field '${refOrPageName}' has no idt property. Possible values are: 'uuid'`,
+                  `List field '${refOrPageName}' has no idt property. Possible values are: 'uuid','bigint'`,
                 )
+              }
+
+              let current = meta
+              prefix.forEach((key, idx) => {
+                if (!current[key]) {
+                  current[key] = {}
+                }
+                if (idx === prefix.length - 1) {
+                  current[key]["_id"] = { id: arrPresData.id, format: arrPresData.idt }
+                }
+                current = current[key]
+              })
+              if (prefix.length === 0) {
+                meta["_id"] = { id: arrPresData.id, format: arrPresData.idt }
               }
               let hf = {
                 field: {
                   type: "hidden",
-                  id: arrPresData.idt,
+                  format: arrPresData.idt,
                   onItemRemove: arrPresData.on_item_remove,
                 },
                 name: "_id",
@@ -679,5 +695,5 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
   }
   /** @type { import("@frontend/common/OcaForm.js").OcaForm } */
   let form = { pages }
-  return { form, i18n }
+  return { form, i18n, meta }
 }
