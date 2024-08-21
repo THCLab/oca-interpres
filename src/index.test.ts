@@ -301,9 +301,12 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
       expect(hf2.field.type).toBe("hidden")
       expect(hf2.field.format).toBe("bigint")
 
+      console.log(result.meta)
       expect(result.meta).toMatchObject({
-        _id: { id: true, format: "uuid" },
-        list1: { _id: { id: true, format: "bigint" } },
+        list1: {
+          _id: { id: true, format: "uuid" },
+          address: { _id: { id: true, format: "bigint" } },
+        },
       })
     })
   })

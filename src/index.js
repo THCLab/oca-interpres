@@ -604,12 +604,19 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
                   current[key] = {}
                 }
                 if (idx === prefix.length - 1) {
-                  current[key]["_id"] = { id: arrPresData.id, format: arrPresData.idt }
+                  if (!current[key][refOrPageName]) {
+                    current[key][refOrPageName] = {}
+                  }
+                  current[key][refOrPageName]["_id"] = {
+                    id: arrPresData.id,
+                    format: arrPresData.idt,
+                  }
                 }
                 current = current[key]
               })
               if (prefix.length === 0) {
-                meta["_id"] = { id: arrPresData.id, format: arrPresData.idt }
+                if (!meta[refOrPageName]) meta[refOrPageName] = {}
+                meta[refOrPageName]["_id"] = { id: arrPresData.id, format: arrPresData.idt }
               }
               let hf = {
                 field: {
