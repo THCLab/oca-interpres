@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { OCABox } from "oca.js"
+import Sugar from "sugar-date"
 
 const DEFAULT_LANG = "eng"
 
@@ -210,12 +211,20 @@ let buildField = (attr, attrPresProperties) => {
     }
     return f
   } else if (attrType === "DateTime") {
+    let range
+    if (attrPresProperties?.range) {
+      const start = Sugar.Date.create(attrPresProperties.range[0])
+      const end = Sugar.Date.create(attrPresProperties.range[1])
+      range = [start, end]
+    }
+
     if (attrPresProperties?.type === "date") {
       /** @type { import("@frontend/common/OcaForm.js").OcaDateField } */
       let f = {
         type: "date",
         format: attr.format || null,
       }
+      if (range) f.range = range
       return f
     } else if (attrPresProperties?.type === "time") {
       /** @type { import("@frontend/common/OcaForm.js").OcaTimeField } */
@@ -223,6 +232,7 @@ let buildField = (attr, attrPresProperties) => {
         type: "time",
         format: attr.format || null,
       }
+      if (range) f.range = range
       return f
     } else if (attrPresProperties?.type === "datetime") {
       /** @type { import("@frontend/common/OcaForm.js").OcaDateTimeField } */
@@ -230,6 +240,7 @@ let buildField = (attr, attrPresProperties) => {
         type: "datetime",
         format: attr.format || null,
       }
+      if (range) f.range = range
       return f
     }
   } else if (attrType.match(/^refs:/) && attrPresProperties?.type === "signature") {
@@ -404,6 +415,11 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
           break
         case "number":
           attrPresentationProp = { ...attrPresentationProp, range: attrMeta.r, step: attrMeta.s }
+          break
+        case "date":
+        case "time":
+        case "datetime":
+          attrPresentationProp = { ...attrPresentationProp, range: attrMeta.r }
           break
       }
       if (attrMeta.t === "signature" && attrMeta.m) {
