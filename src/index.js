@@ -692,6 +692,7 @@ export const from = async (bundleWithDeps, presentation, conditionals = {}, read
 
     /** @type {import("@frontend/common/OcaForm.js").OcaFormPage} */
     let page = {}
+    page.type = "page"
     page.name = pageLbl
     page.title = pageLbl
     page.fields = []
