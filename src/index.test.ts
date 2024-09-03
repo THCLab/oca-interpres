@@ -1,7 +1,6 @@
 import axios from "axios"
 import { beforeAll, describe, expect, test } from "vitest"
 import { from } from "./index.js"
-
 const OCA_REPO: string | undefined = process.env.OCA_REPO
 
 if (!OCA_REPO) {
@@ -66,7 +65,6 @@ ADD LABEL pl ATTRS\
         i: [],
       }
       const result = await from(bundle.data, pres, {})
-      console.dir(result, { depth: null })
     })
   })
 
@@ -162,7 +160,6 @@ ADD LABEL pl ATTRS address="Adres"
         expect(result.form.pages[1].fields.map((el) => el.name)).toEqual(["i", "address"])
         expect(result.form.pages[1].fields[1].fields).toBeInstanceOf(Array)
         expect(result.i18n.locales.eng.p["page.address.title"]).toBe("Address")
-        console.dir(result, { depth: null })
       })
     })
 
@@ -212,7 +209,6 @@ ADD LABEL pl ATTRS address="Adres"
         ])
         expect(result.form.pages[1].fields[1].fields).toBeInstanceOf(Array)
         expect(result.i18n.locales.eng.p["page.address.title"]).toBe("Address")
-        console.dir(result, { depth: null })
       })
     })
   })
@@ -223,7 +219,11 @@ ADD LABEL pl ATTRS address="Adres"
       let list3Resp = await axios.post(`${OCA_REPO}/api/oca-bundles`, list3)
       expect(list3Resp.data).toHaveProperty("said")
 
-      const list1 = `ADD ATTRIBUTE address=Array[refs:${list3Resp.data.said}]`
+      const list2 = `ADD ATTRIBUTE address=Array[refs:${list3Resp.data.said}]`
+      let list2Resp = await axios.post(`${OCA_REPO}/api/oca-bundles`, list2)
+      expect(list2Resp.data).toHaveProperty("said")
+
+      const list1 = `ADD ATTRIBUTE obj=refs:${list2Resp.data.said}`
       let list1Resp = await axios.post(`${OCA_REPO}/api/oca-bundles`, list1)
       expect(list1Resp.data).toHaveProperty("said")
 
@@ -259,7 +259,12 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
             ao: [
               {
                 nr: "list1",
-                ao: [{ nr: "address", ao: ["street", "zip", "city"] }],
+                ao: [
+                  {
+                    nr: "obj",
+                    ao: [{ nr: "address", ao: ["street", "zip", "city"] }],
+                  },
+                ],
               },
               "list2",
             ],
@@ -277,7 +282,7 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
             c: "capture",
             a: {
               list1: { t: "list", id: true, idt: "uuid", on_item_remove: "inform" },
-              "list1.address": { t: "list", id: true, idt: "bigint", on_item_remove: "inform" },
+              "list1.obj.address": { t: "list", id: true, idt: "bigint", on_item_remove: "inform" },
             },
           },
         ],
@@ -285,7 +290,7 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
 
       const result = await from(bundle.data, pres, {})
 
-      expect(result.form.pages[0].fields[0].fields[0].type).toBe("list")
+      expect(result).toHaveNestedProperty("form.pages[0].fields[0].fields[0].type", "list")
       const hf1 = result.form.pages[0].fields[0].fields[0].elementFields.find(
         (ef) => ef.name === "_id",
       )
@@ -293,19 +298,24 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
       expect(hf1.field.type).toBe("hidden")
       expect(hf1.field.format).toBe("uuid")
 
+      expect(result).toHaveNestedProperty(
+        "form.pages[0].fields[0].fields[0].elementFields[0].fields[0].fields[0].type",
+        "list",
+      )
       const hf2 =
-        result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].elementFields.find(
+        result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].fields[0].elementFields.find(
           (ef) => ef.name === "_id",
         )
       expect(hf2).toBeTruthy()
       expect(hf2.field.type).toBe("hidden")
       expect(hf2.field.format).toBe("bigint")
 
-      console.log(result.meta)
       expect(result.meta).toMatchObject({
         list1: {
           _id: { id: true, format: "uuid" },
-          address: { _id: { id: true, format: "bigint" } },
+          obj: {
+            address: { _id: { id: true, format: "bigint" } },
+          },
         },
       })
     })
@@ -350,10 +360,58 @@ ADD LABEL en ATTRS multi="Multi"
           ],
         }
         const result = await from(bundle.data, pres, {})
-        console.dir(result, { depth: null })
         expect(result.form.pages[0].fields[0].field.type).toBe("choice")
         expect(result.form.pages[0].fields[0].field.display.type).toBe("select-multiple")
       })
     })
   })
+})
+
+expect.extend({
+  toHaveNestedProperty(received, path, expected) {
+    const keys = path.replace(/\[(\d+)\]/g, ".$1").split(".") // Split on '.' and treat '[0]' as '.0'
+    let current = received
+    let traversedPath = ""
+
+    for (const [index, key] of keys.entries()) {
+      traversedPath += index > 0 ? `.${key}` : key
+
+      if (Array.isArray(current)) {
+        const arrayIndex = parseInt(key, 10)
+        if (isNaN(arrayIndex) || arrayIndex >= current.length) {
+          return {
+            message: () =>
+              `Failed at ${traversedPath}. Expected to find array index [${key}] but it was not found.\n` +
+              `Traversed: ${traversedPath}\nRemaining: ${keys.slice(index + 1).join(".")}`,
+            pass: false,
+          }
+        }
+        current = current[arrayIndex]
+      } else if (current && Object.prototype.hasOwnProperty.call(current, key)) {
+        current = current[key]
+      } else {
+        return {
+          message: () =>
+            `Failed at ${traversedPath}. Expected to find property '${key}' but it was not found.\n` +
+            `Traversed: ${traversedPath}\nRemaining: ${keys.slice(index + 1).join(".")}`,
+          pass: false,
+        }
+      }
+    }
+
+    const pass = current === expected
+
+    if (pass) {
+      return {
+        message: () => `Expected ${traversedPath} not to be ${expected}`,
+        pass: true,
+      }
+    } else {
+      return {
+        message: () =>
+          `Expected ${traversedPath} to be ${expected}, but received ${JSON.stringify(current)}`,
+        pass: false,
+      }
+    }
+  },
 })
