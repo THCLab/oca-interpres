@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-import { OCABox } from "oca.js"
-import Sugar from "sugar-date"
+const { OCABox } = require("oca.js")
+const Sugar = require("sugar-date")
 
 const DEFAULT_LANG = "eng"
 
@@ -287,7 +286,7 @@ const meta = {}
  * @param {import("../schemas/conditionals.js").ConditionalsType} conditionals
  * @param {string[]} readonlies
  * */
-export const from = async (bundleWithDeps, presentation, conditionals = {}, readonlies = []) => {
+module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, readonlies = []) => {
   /** @type { import("../schemas/i18n.js").FormI18nType }*/
   let i18n = { locales: {} }
   if (presentation.bd !== bundleWithDeps.bundle.d) {
