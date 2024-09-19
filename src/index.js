@@ -637,7 +637,6 @@ module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, re
                 field: {
                   type: "hidden",
                   format: arrPresData.idt,
-                  onItemRemove: arrPresData.on_item_remove,
                 },
                 name: "_id",
               }
@@ -651,6 +650,7 @@ module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, re
               type: "list",
               minLength: min && min.trim().length > 0 ? parseInt(min) : null,
               maxLength: max && max.trim().length > 0 ? parseInt(max) : null,
+              onItemRemove: arrPresData.on_item_remove,
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

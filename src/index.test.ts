@@ -291,6 +291,7 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
       const result = await from(bundle.data, pres, {})
 
       expect(result).toHaveNestedProperty("form.pages[0].fields[0].fields[0].type", "list")
+      console.dir(result, { depth: null })
       const hf1 = result.form.pages[0].fields[0].fields[0].elementFields.find(
         (ef) => ef.name === "_id",
       )
@@ -302,10 +303,12 @@ ADD ENTRY en ATTRS list2={"o1": "One", "o2": "Two", "o3": "Three", "o4": "Four",
         "form.pages[0].fields[0].fields[0].elementFields[0].fields[0].fields[0].type",
         "list",
       )
-      const hf2 =
-        result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].fields[0].elementFields.find(
-          (ef) => ef.name === "_id",
-        )
+      const hfList2 = result.form.pages[0].fields[0].fields[0].elementFields[0].fields[0].fields[0]
+      expect(hfList2).toMatchObject({
+        onItemRemove: "inform",
+        type: "list",
+      })
+      const hf2 = hfList2.elementFields.find((ef) => ef.name === "_id")
       expect(hf2).toBeTruthy()
       expect(hf2.field.type).toBe("hidden")
       expect(hf2.field.format).toBe("bigint")
