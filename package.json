@@ -1,6 +1,6 @@
 {
   "name": "oca-interpres",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "description": "The glue for the semantics and presentation layer",
   "main": "src/index.js",
   "types": "src/index.d.ts",
