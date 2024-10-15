@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "oca.js": "^0.5.4",
+    "oca.js044": "npm:oca.js@^0.4.4",
     "sugar-date": "^2.0.6"
   },
   "prettier": {

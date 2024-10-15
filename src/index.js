@@ -305,9 +305,15 @@ module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, re
   const oca_box = new OCABox().load(bundleWithDeps.bundle)
   /** @type { Record<SAID, OCABox> } */
   let OCABoxDeps = {}
-  bundleWithDeps.dependencies.forEach((dep) => {
-    OCABoxDeps[dep.d] = new OCABox().load(dep)
-  })
+  for (let i = 0; i < bundleWithDeps.dependencies.length; i++) {
+    const dep = bundleWithDeps.dependencies[i]
+    try {
+      OCABoxDeps[dep.d] = new OCABox().load(dep)
+    } catch (e) {
+      const { OCABox } = await import("oca.js044")
+      OCABoxDeps[dep.d] = new OCABox().load(dep)
+    }
+  }
   /** @type { Record<string, SAID> } */
   let referencedAttrs = {}
 
