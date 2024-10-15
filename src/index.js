@@ -310,7 +310,7 @@ module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, re
     try {
       OCABoxDeps[dep.d] = new OCABox().load(dep)
     } catch (e) {
-      const { OCABox } = await import("oca.js044")
+      const { OCABox } = require("oca.js044")
       OCABoxDeps[dep.d] = new OCABox().load(dep)
     }
   }
