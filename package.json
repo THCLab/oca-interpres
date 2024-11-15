@@ -29,8 +29,9 @@
     "vitest": "^1.3.1"
   },
   "dependencies": {
-    "oca.js": "^0.5.4",
+    "oca.js": "^0.6.0",
     "oca.js044": "npm:oca.js@^0.4.4",
+    "oca.js054": "npm:oca.js@^0.5.4",
     "sugar-date": "^2.0.6"
   },
   "prettier": {

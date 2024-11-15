@@ -368,6 +368,72 @@ ADD LABEL en ATTRS multi="Multi"
       })
     })
   })
+
+  describe("backward compatibility", () => {
+    describe("based on version", () => {
+      test("OCAA10", async () => {
+        const bundle = require("../tests/fixtures/oca-1.0.json")
+        const pres = {
+          v: "1.0.0",
+          bd: bundle.bundle.d,
+          l: ["eng"],
+          d: "EK0T5StXlcYwIhfp_wJxhIpYwYpEnMhHwnKbHnodhxFU",
+          p: [{ ns: "page 1", ao: ["d"] }],
+          po: ["page 1"],
+          pl: {
+            eng: {
+              "page 1": "First page",
+            },
+          },
+          i: [],
+        }
+        const result = await from(bundle, pres, {})
+        expect(result.form.pages[0].fields[0].field.type).toBe("text")
+      })
+
+      test("OCAA11", async () => {
+        const bundle = require("../tests/fixtures/oca-1.1.json")
+        const pres = {
+          v: "1.0.0",
+          bd: bundle.bundle.d,
+          l: ["eng"],
+          d: "EK0T5StXlcYwIhfp_wJxhIpYwYpEnMhHwnKbHnodhxFU",
+          p: [{ ns: "page 1", ao: ["d"] }],
+          po: ["page 1"],
+          pl: {
+            eng: {
+              "page 1": "First page",
+            },
+          },
+          i: [],
+        }
+        const result = await from(bundle, pres, {})
+        expect(result.form.pages[0].fields[0].field.type).toBe("text")
+      })
+    })
+
+    describe("no version", () => {
+      test("new unit overlay", async () => {
+        const bundle = require("../tests/fixtures/oca-0.1.json")
+        const pres = {
+          v: "1.0.0",
+          bd: bundle.bundle.d,
+          l: ["eng"],
+          d: "EK0T5StXlcYwIhfp_wJxhIpYwYpEnMhHwnKbHnodhxFU",
+          p: [{ ns: "page 1", ao: ["d"] }],
+          po: ["page 1"],
+          pl: {
+            eng: {
+              "page 1": "First page",
+            },
+          },
+          i: [],
+        }
+        const result = await from(bundle, pres, {})
+        expect(result.form.pages[0].fields[0].field.type).toBe("text")
+      })
+    })
+  })
 })
 
 expect.extend({

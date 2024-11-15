@@ -302,16 +302,42 @@ module.exports.from = async (bundleWithDeps, presentation, conditionals = {}, re
       m: {},
     }
   }
-  const oca_box = new OCABox().load(bundleWithDeps.bundle)
-  /** @type { Record<SAID, OCABox> } */
+  let oca_box
   let OCABoxDeps = {}
-  for (let i = 0; i < bundleWithDeps.dependencies.length; i++) {
-    const dep = bundleWithDeps.dependencies[i]
+  if (bundleWithDeps.v) {
+    if (bundleWithDeps.v.startsWith("OCAA11")) {
+      oca_box = new OCABox().load(bundleWithDeps.bundle)
+      /** @type { Record<SAID, OCABox> } */
+      for (let i = 0; i < bundleWithDeps.dependencies.length; i++) {
+        const dep = bundleWithDeps.dependencies[i]
+        OCABoxDeps[dep.d] = new OCABox().load(dep)
+      }
+    } else if (bundleWithDeps.v.startsWith("OCAA10")) {
+      const { OCABox } = require("oca.js054")
+      oca_box = new OCABox().load(bundleWithDeps.bundle)
+      /** @type { Record<SAID, OCABox> } */
+      for (let i = 0; i < bundleWithDeps.dependencies.length; i++) {
+        const dep = bundleWithDeps.dependencies[i]
+        OCABoxDeps[dep.d] = new OCABox().load(dep)
+      }
+    }
+  } else {
+    const { OCABox } = require("oca.js054")
     try {
-      OCABoxDeps[dep.d] = new OCABox().load(dep)
+      oca_box = new OCABox().load(bundleWithDeps.bundle)
     } catch (e) {
       const { OCABox } = require("oca.js044")
-      OCABoxDeps[dep.d] = new OCABox().load(dep)
+      oca_box = new OCABox().load(bundleWithDeps.bundle)
+    }
+    /** @type { Record<SAID, OCABox> } */
+    for (let i = 0; i < bundleWithDeps.dependencies.length; i++) {
+      const dep = bundleWithDeps.dependencies[i]
+      try {
+        OCABoxDeps[dep.d] = new OCABox().load(dep)
+      } catch (e) {
+        const { OCABox } = require("oca.js044")
+        OCABoxDeps[dep.d] = new OCABox().load(dep)
+      }
     }
   }
   /** @type { Record<string, SAID> } */
